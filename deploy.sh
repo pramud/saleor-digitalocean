@@ -23,14 +23,24 @@ ENABLE_SSL=True
 JWT_TTL_ACCESS=5m
 JWT_TTL_REFRESH=30d
 JWT_TTL_REQUEST_EMAIL_CHANGE=1h
-ALLOWED_HOSTS=api.hashloop.org
-ALLOWED_CLIENT_HOSTS=dashboard.hashloop.org,storefront.hashloop.org
+ALLOWED_HOSTS=api.hashloop.org,localhost
+ALLOWED_CLIENT_HOSTS=dashboard.hashloop.org,storefront.hashloop.org,localhost
 PUBLIC_URL=https://api.hashloop.org/
 HTTP_IP_FILTER_ENABLED=True
-CACHE_URL=redis://localhost:6379/0
-CELERY_BROKER_URL=redis://localhost:6379/1
-DATABASE_URL=postgres://saleor:saleor@localhost:5433/saleor
+CACHE_URL=redis://redis:6379/0
+CELERY_BROKER_URL=redis://redis:6379/1
+DATABASE_URL=postgres://saleor:saleor@db/saleor
+SECRET_KEY=$(openssl rand -hex 32)
+EMAIL_URL=smtp://mailpit:1025
 EOL
+
+# Generate RSA keys for JWT authentication
+openssl genrsa -out jwt_private.pem 4096
+openssl rsa -in jwt_private.pem -pubout -out jwt_public.pem
+
+# Add RSA keys to environment
+echo "RSA_PRIVATE_KEY=$(cat jwt_private.pem | base64 -w 0)" >> common.env
+echo "RSA_PUBLIC_KEY=$(cat jwt_public.pem | base64 -w 0)" >> common.env
 
 # Build and start services
 docker-compose build
