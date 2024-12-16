@@ -10,6 +10,10 @@ echo "Starting setup at $(date)"
 apt-get update
 apt-get upgrade -y
 
+# Stop and disable default PostgreSQL if running
+systemctl stop postgresql
+systemctl disable postgresql
+
 # Install required packages
 apt-get install -y \
     apt-transport-https \
@@ -23,7 +27,8 @@ apt-get install -y \
     postgresql \
     postgresql-contrib \
     redis-server \
-    uidmap
+    uidmap \
+    systemd
 
 # Create saleor user
 useradd -m -s /bin/bash saleor
@@ -37,13 +42,21 @@ sh get-docker.sh
 # Switch to saleor user and setup rootless Docker
 su - saleor << 'EOF'
 # Setup rootless mode
+export XDG_RUNTIME_DIR=/home/saleor/.docker/run
+mkdir -p $XDG_RUNTIME_DIR
+chmod 700 $XDG_RUNTIME_DIR
+
+# Setup Docker rootless
 dockerd-rootless-setuptool.sh install
 
 # Add environment variables to .bashrc
-echo 'export PATH=/usr/bin:$PATH' >> ~/.bashrc
-echo 'export DOCKER_HOST=unix:///run/user/$(id -u)/docker.sock' >> ~/.bashrc
+cat >> ~/.bashrc << 'INNEREOF'
+export XDG_RUNTIME_DIR=/home/saleor/.docker/run
+export DOCKER_HOST=unix:///home/saleor/.docker/run/docker.sock
+export PATH=/usr/bin:$PATH
+INNEREOF
 
-# Start rootless Docker daemon
+# Start Docker daemon
 systemctl --user enable docker
 systemctl --user start docker
 
