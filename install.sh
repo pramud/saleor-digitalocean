@@ -17,19 +17,8 @@ check_status() {
     fi
 }
 
-# Create scripts directory
-mkdir -p /opt/saleor/scripts
-cd /opt/saleor/scripts
-
-# Download all required scripts
-echo "Downloading installation scripts..."
-curl -O https://raw.githubusercontent.com/yourgithub/saleor-deployment/main/setup.sh
-curl -O https://raw.githubusercontent.com/yourgithub/saleor-deployment/main/deploy.sh
-curl -O https://raw.githubusercontent.com/yourgithub/saleor-deployment/main/nginx_config.sh
-curl -O https://raw.githubusercontent.com/yourgithub/saleor-deployment/main/ssl_config.sh
-
-# Make scripts executable
-chmod +x *.sh
+# Make all scripts executable
+chmod +x setup.sh deploy.sh nginx_config.sh ssl_config.sh
 
 # Run setup script
 echo "Running system setup..."
@@ -75,4 +64,19 @@ echo "Installation completed at $(date)"
 # Print important information
 echo "
 ===========================================
-��������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������
+🎉 Saleor Installation Complete! 🎉
+===========================================
+
+Your Saleor instances are available at:
+- API: https://api.hashloop.org
+- Dashboard: https://dashboard.hashloop.org
+- Storefront: https://storefront.hashloop.org
+
+Important next steps:
+1. Access the dashboard and set up your first admin user
+2. Configure your store settings
+3. Set up your first products
+
+For troubleshooting, check the logs at: $log_file
+===========================================
+"
