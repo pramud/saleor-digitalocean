@@ -29,7 +29,7 @@ PUBLIC_URL=https://api.hashloop.org/
 HTTP_IP_FILTER_ENABLED=True
 CACHE_URL=redis://localhost:6379/0
 CELERY_BROKER_URL=redis://localhost:6379/1
-DATABASE_URL=postgres://saleor:saleor@localhost:5432/saleor
+DATABASE_URL=postgres://saleor:saleor@localhost:5433/saleor
 EOL
 
 # Build and start services
