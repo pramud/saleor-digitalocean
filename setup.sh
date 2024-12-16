@@ -20,7 +20,6 @@ apt-get install -y \
     nginx \
     certbot \
     python3-certbot-nginx \
-    redis-server \
     uidmap \
     systemd
 
