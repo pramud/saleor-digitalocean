@@ -28,9 +28,25 @@ apt-get install -y \
 curl -fsSL https://get.docker.com -o get-docker.sh
 sh get-docker.sh
 
-# Start and enable Docker
-systemctl start docker
-systemctl enable docker
+# After Docker installation, set up rootless mode
+echo "Setting up Docker rootless mode..."
+apt-get install -y uidmap
+systemctl disable --now docker.service
+systemctl disable --now docker.socket
+
+# Setup rootless mode for the current user
+dockerd-rootless-setuptool.sh install
+
+# Add environment variables to .bashrc
+echo 'export PATH=/usr/bin:$PATH' >> ~/.bashrc
+echo 'export DOCKER_HOST=unix:///run/user/1000/docker.sock' >> ~/.bashrc
+
+# Start rootless Docker daemon
+systemctl --user enable docker
+systemctl --user start docker
+
+# Allow current user to run Docker commands without sudo
+loginctl enable-linger $(whoami)
 
 # Install Docker Compose
 curl -L "https://github.com/docker/compose/releases/download/v2.23.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
