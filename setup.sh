@@ -22,31 +22,34 @@ apt-get install -y \
     python3-certbot-nginx \
     postgresql \
     postgresql-contrib \
-    redis-server
+    redis-server \
+    uidmap
+
+# Create saleor user
+useradd -m -s /bin/bash saleor
+usermod -aG sudo saleor
+echo "saleor ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Install Docker
 curl -fsSL https://get.docker.com -o get-docker.sh
 sh get-docker.sh
 
-# After Docker installation, set up rootless mode
-echo "Setting up Docker rootless mode..."
-apt-get install -y uidmap
-systemctl disable --now docker.service
-systemctl disable --now docker.socket
-
-# Setup rootless mode for the current user
+# Switch to saleor user and setup rootless Docker
+su - saleor << 'EOF'
+# Setup rootless mode
 dockerd-rootless-setuptool.sh install
 
 # Add environment variables to .bashrc
 echo 'export PATH=/usr/bin:$PATH' >> ~/.bashrc
-echo 'export DOCKER_HOST=unix:///run/user/1000/docker.sock' >> ~/.bashrc
+echo 'export DOCKER_HOST=unix:///run/user/$(id -u)/docker.sock' >> ~/.bashrc
 
 # Start rootless Docker daemon
 systemctl --user enable docker
 systemctl --user start docker
 
-# Allow current user to run Docker commands without sudo
+# Enable lingering for the saleor user
 loginctl enable-linger $(whoami)
+EOF
 
 # Install Docker Compose
 curl -L "https://github.com/docker/compose/releases/download/v2.23.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -57,9 +60,9 @@ curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 apt-get install -y nodejs
 npm install -g pnpm@8
 
-# Create deployment directory
+# Create deployment directory and set permissions
 mkdir -p /opt/saleor
-cd /opt/saleor
+chown -R saleor:saleor /opt/saleor
 
 # Set up firewall
 ufw allow 22/tcp  # SSH
