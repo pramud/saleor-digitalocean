@@ -35,12 +35,13 @@ EMAIL_URL=smtp://mailpit:1025
 EOL
 
 # Generate RSA keys for JWT authentication
-openssl genrsa -out jwt_private.pem 4096
-openssl rsa -in jwt_private.pem -pubout -out jwt_public.pem
+mkdir -p jwt
+openssl genpkey -algorithm RSA -out jwt/jwt_private.pem -pkeyopt rsa_keygen_bits:4096
+openssl rsa -in jwt/jwt_private.pem -pubout -out jwt/jwt_public.pem
 
-# Add RSA keys to environment
-echo "RSA_PRIVATE_KEY=$(cat jwt_private.pem | base64 -w 0)" >> common.env
-echo "RSA_PUBLIC_KEY=$(cat jwt_public.pem | base64 -w 0)" >> common.env
+# Add RSA keys to environment (with proper formatting)
+echo "RSA_PRIVATE_KEY=$(sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g' jwt/jwt_private.pem)" >> common.env
+echo "RSA_PUBLIC_KEY=$(sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g' jwt/jwt_public.pem)" >> common.env
 
 # Build and start services
 docker-compose build
