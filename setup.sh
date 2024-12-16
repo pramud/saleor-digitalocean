@@ -10,12 +10,6 @@ echo "Starting setup at $(date)"
 apt-get update
 apt-get upgrade -y
 
-# Stop and disable default PostgreSQL if running
-if systemctl is-active postgresql &>/dev/null; then
-    systemctl stop postgresql
-    systemctl disable postgresql
-fi
-
 # Install required packages
 apt-get install -y \
     apt-transport-https \
@@ -26,8 +20,6 @@ apt-get install -y \
     nginx \
     certbot \
     python3-certbot-nginx \
-    postgresql \
-    postgresql-contrib \
     redis-server \
     uidmap \
     systemd
