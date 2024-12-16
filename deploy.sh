@@ -36,12 +36,18 @@ EOL
 
 # Generate RSA keys for JWT authentication
 mkdir -p jwt
-openssl genpkey -algorithm RSA -out jwt/jwt_private.pem -pkeyopt rsa_keygen_bits:4096
-openssl rsa -in jwt/jwt_private.pem -pubout -out jwt/jwt_public.pem
+# Generate private key in PKCS#8 format
+openssl genrsa -out jwt/private.pem 4096
+openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in jwt/private.pem -out jwt/jwt_private.pem
+openssl rsa -in jwt/private.pem -pubout -out jwt/jwt_public.pem
+rm jwt/private.pem
 
 # Add RSA keys to environment (with proper formatting)
-echo "RSA_PRIVATE_KEY=$(sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g' jwt/jwt_private.pem)" >> common.env
-echo "RSA_PUBLIC_KEY=$(sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g' jwt/jwt_public.pem)" >> common.env
+RSA_PRIVATE_KEY=$(cat jwt/jwt_private.pem | tr -d '\n' | sed 's/-----BEGIN PRIVATE KEY-----//' | sed 's/-----END PRIVATE KEY-----//')
+RSA_PUBLIC_KEY=$(cat jwt/jwt_public.pem | tr -d '\n' | sed 's/-----BEGIN PUBLIC KEY-----//' | sed 's/-----END PUBLIC KEY-----//')
+
+echo "RSA_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----${RSA_PRIVATE_KEY}-----END PRIVATE KEY-----" >> common.env
+echo "RSA_PUBLIC_KEY=-----BEGIN PUBLIC KEY-----${RSA_PUBLIC_KEY}-----END PUBLIC KEY-----" >> common.env
 
 # Build and start services
 docker-compose build
