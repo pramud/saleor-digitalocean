@@ -11,8 +11,10 @@ apt-get update
 apt-get upgrade -y
 
 # Stop and disable default PostgreSQL if running
-systemctl stop postgresql
-systemctl disable postgresql
+if systemctl is-active postgresql &>/dev/null; then
+    systemctl stop postgresql
+    systemctl disable postgresql
+fi
 
 # Install required packages
 apt-get install -y \
